@@ -22,6 +22,9 @@ export interface BLEGateway {
   zone_id?: string;
   gateway_type: string;
   firmware_version?: string;
+  connection_protocol?: string;
+  port?: number;
+  heartbeat_interval?: number;
   scan_interval: number; 
   signal_range: number;  
   is_online: boolean;
@@ -42,6 +45,9 @@ interface GatewayFormState {
   zone_id?: string;
   gateway_type: string;
   firmware_version?: string;
+  connection_protocol?: string;
+  port?: number | string;
+  heartbeat_interval?: number | string;
   scan_interval: number | string; 
   signal_range: number | string;  
   is_online: boolean;
@@ -66,6 +72,9 @@ const defaultFormData: GatewayFormState = {
   zone_id: '',
   gateway_type: 'FIXED',
   firmware_version: '',
+  connection_protocol: 'MQTT',
+  port: 1883,
+  heartbeat_interval: 60,
   scan_interval: 1000,
   signal_range: 50,
   description: '',
@@ -87,6 +96,17 @@ function GatewayForm({ item, onSave, onCancel }: GatewayFormProps) {
     }
   }, [item]);
 
+  const applyRecommendedSettings = () => {
+    const presets: Record<string, Partial<GatewayFormState>> = {
+      FIXED: { scan_interval: 1000, signal_range: 50, connection_protocol: 'MQTT', port: 1883, heartbeat_interval: 60 },
+      MOBILE: { scan_interval: 2000, signal_range: 30, connection_protocol: 'HTTP', port: 8080, heartbeat_interval: 90 },
+      HANDHELD: { scan_interval: 3000, signal_range: 20, connection_protocol: 'HTTP', port: 8080, heartbeat_interval: 120 },
+      ANCHOR: { scan_interval: 500, signal_range: 60, connection_protocol: 'TCP', port: 9000, heartbeat_interval: 30 },
+    };
+
+    setFormData({ ...formData, ...presets[formData.gateway_type] });
+  };
+
   return (
     <>
       <DialogHeader>
@@ -96,6 +116,20 @@ function GatewayForm({ item, onSave, onCancel }: GatewayFormProps) {
         </DialogDescription>
       </DialogHeader>
       <form onSubmit={(e: React.FormEvent) => { e.preventDefault(); onSave(formData); }} className="space-y-4 mt-4">
+        <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-blue-900">Quick setup for BLE Gateway</p>
+              <p className="text-xs text-blue-700 mt-1">
+                Use recommended values based on gateway type, then update MAC/IP to match your physical device.
+              </p>
+            </div>
+            <Button type="button" variant="outline" onClick={applyRecommendedSettings}>
+              Apply Recommended
+            </Button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="code">Code *</Label>
@@ -127,6 +161,8 @@ function GatewayForm({ item, onSave, onCancel }: GatewayFormProps) {
               value={formData.mac_address} 
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, mac_address: e.target.value })} 
               placeholder="e.g., AA:BB:CC:DD:EE:FF"
+              pattern="^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+              title="Use MAC format XX:XX:XX:XX:XX:XX"
               required 
             />
           </div>
@@ -137,6 +173,8 @@ function GatewayForm({ item, onSave, onCancel }: GatewayFormProps) {
               value={formData.ip_address || ''} 
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, ip_address: e.target.value })} 
               placeholder="e.g., 192.168.1.100"
+              pattern="^$|^((25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})$"
+              title="Use IPv4 format, e.g. 192.168.1.100"
             />
           </div>
         </div>
@@ -191,6 +229,38 @@ function GatewayForm({ item, onSave, onCancel }: GatewayFormProps) {
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
+            <Label htmlFor="connection_protocol">Connection Protocol *</Label>
+            <Select value={formData.connection_protocol} onValueChange={(value: string) => setFormData({ ...formData, connection_protocol: value })}>
+              <SelectTrigger id="connection_protocol">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MQTT">MQTT</SelectItem>
+                <SelectItem value="HTTP">HTTP</SelectItem>
+                <SelectItem value="TCP">TCP Socket</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="port">Port *</Label>
+            <Input
+              id="port"
+              type="number"
+              min="1"
+              max="65535"
+              value={formData.port ?? ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const val = e.target.value;
+                setFormData({ ...formData, port: val === '' ? '' : Number(val) });
+              }}
+              placeholder="e.g., 1883"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
             <Label htmlFor="scan_interval">Scan Interval (ms) *</Label>
             <Input 
               id="scan_interval"
@@ -206,6 +276,23 @@ function GatewayForm({ item, onSave, onCancel }: GatewayFormProps) {
               required 
             />
             <p className="text-xs text-gray-500">How often the gateway scans for beacons</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="heartbeat_interval">Heartbeat Interval (sec) *</Label>
+            <Input 
+              id="heartbeat_interval"
+              type="number"
+              value={formData.heartbeat_interval ?? ''} 
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const val = e.target.value;
+                setFormData({ ...formData, heartbeat_interval: val === '' ? '' : Number(val) });
+              }} 
+              placeholder="e.g., 60"
+              min="5"
+              max="600"
+              required
+            />
+            <p className="text-xs text-gray-500">Health-check report frequency</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="signal_range">Signal Range (meters) *</Label>
@@ -292,6 +379,8 @@ export function BLEGateways() {
     try {
       const payload = {
         ...item,
+        port: Number(item.port) || 1883,
+        heartbeat_interval: Number(item.heartbeat_interval) || 60,
         scan_interval: Number(item.scan_interval) || 1000,
         signal_range: Number(item.signal_range) || 50,
       };
@@ -307,6 +396,8 @@ export function BLEGateways() {
     try {
       const payload = {
         ...item,
+        port: Number(item.port) || 1883,
+        heartbeat_interval: Number(item.heartbeat_interval) || 60,
         scan_interval: Number(item.scan_interval) || 1000,
         signal_range: Number(item.signal_range) || 50,
       };
@@ -378,6 +469,11 @@ export function BLEGateways() {
           {item.gateway_type}
         </Badge>
       ),
+    },
+    {
+      key: 'connection_protocol',
+      label: 'Protocol',
+      render: (item) => <span>{item.connection_protocol || 'MQTT'}</span>,
     },
     {
       key: 'signal_range',
