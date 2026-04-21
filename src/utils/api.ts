@@ -43,7 +43,7 @@ async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Pr
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
-        const errorData = await response.json();
+        const errorData: any = await response.json();
         errorMessage = errorData.error || errorData.message || errorMessage;
         console.error(`API Error Response:`, errorData);
       } catch (e) {
@@ -55,7 +55,7 @@ async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Pr
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
+    const data = await response.json() as T;
     console.log(`API Response data:`, data);
     return data;
   } catch (error) {
@@ -71,21 +71,21 @@ async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Pr
 export const masterDataApi = {
   // Product Categories
   getProductCategories: () => apiRequest<any[]>('/master/product-categories'),
-  createProductCategory: (data: any) => apiRequest('/master/product-categories', { method: 'POST', body: data }),
-  updateProductCategory: (id: string, data: any) => apiRequest(`/master/product-categories/${id}`, { method: 'PUT', body: data }),
-  deleteProductCategory: (id: string) => apiRequest(`/master/product-categories/${id}`, { method: 'DELETE' }),
+  createProductCategory: (data: any) => apiRequest<any>('/master/product-categories', { method: 'POST', body: data }),
+  updateProductCategory: (id: string, data: any) => apiRequest<any>(`/master/product-categories/${id}`, { method: 'PUT', body: data }),
+  deleteProductCategory: (id: string) => apiRequest<any>(`/master/product-categories/${id}`, { method: 'DELETE' }),
 
   // Warehouse Zones
   getWarehouseZones: () => apiRequest<any[]>('/master/warehouse-zones'),
-  createWarehouseZone: (data: any) => apiRequest('/master/warehouse-zones', { method: 'POST', body: data }),
-  updateWarehouseZone: (id: string, data: any) => apiRequest(`/master/warehouse-zones/${id}`, { method: 'PUT', body: data }),
-  deleteWarehouseZone: (id: string) => apiRequest(`/master/warehouse-zones/${id}`, { method: 'DELETE' }),
+  createWarehouseZone: (data: any) => apiRequest<any>('/master/warehouse-zones', { method: 'POST', body: data }),
+  updateWarehouseZone: (id: string, data: any) => apiRequest<any>(`/master/warehouse-zones/${id}`, { method: 'PUT', body: data }),
+  deleteWarehouseZone: (id: string) => apiRequest<any>(`/master/warehouse-zones/${id}`, { method: 'DELETE' }),
 
   // Generic master data functions
   get: (type: string) => apiRequest<any[]>(`/master/${type}`),
-  create: (type: string, data: any) => apiRequest(`/master/${type}`, { method: 'POST', body: data }),
-  update: (type: string, id: string, data: any) => apiRequest(`/master/${type}/${id}`, { method: 'PUT', body: data }),
-  delete: (type: string, id: string) => apiRequest(`/master/${type}/${id}`, { method: 'DELETE' }),
+  create: (type: string, data: any) => apiRequest<any>(`/master/${type}`, { method: 'POST', body: data }),
+  update: (type: string, id: string, data: any) => apiRequest<any>(`/master/${type}/${id}`, { method: 'PUT', body: data }),
+  delete: (type: string, id: string) => apiRequest<any>(`/master/${type}/${id}`, { method: 'DELETE' }),
 };
 
 // ============================================================================

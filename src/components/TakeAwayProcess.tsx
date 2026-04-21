@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowUpFromLine, Package, MapPin, Scan, CheckCircle2, ChevronRight, Bluetooth, ShoppingCart } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 type Step = 'order' | 'locate' | 'verify' | 'complete';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ClipboardCheck, Package, Scan, CheckCircle, XCircle, AlertTriangle, Camera, FileText, Bluetooth } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 type InspectionStatus = 'pending' | 'passed' | 'failed' | 'hold';
 

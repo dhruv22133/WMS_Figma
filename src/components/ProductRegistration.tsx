@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Warehouse, Bluetooth, CheckCircle2, Scan, MapPin, Box, Package2, ClipboardCheck, AlertTriangle, Signal } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface ProductFormData {
   productName: string;
