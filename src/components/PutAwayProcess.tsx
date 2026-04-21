@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowDownToLine, Package, Scan, ClipboardCheck, MapPin, CheckCircle2, ChevronRight, Bluetooth, Signal } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 type Step = 'receiving' | 'inspection' | 'location' | 'complete';
 
